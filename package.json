@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "run": "node server/server.js",
-    "test": "mocha **/*.test.js"
+    "test": "mocha server/**/*.test.js",
+    "test-w": "nodemon --exec \"mocha server/**/*.test.js\""
   },
   "author": "Brooks Garrett",
   "license": "ISC",
@@ -15,5 +16,10 @@
     "mongodb": "^2.2.22",
     "mongoose": "^4.8.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "expect": "^1.20.2",
+    "mocha": "^3.2.0",
+    "nodemon": "^1.11.0",
+    "supertest": "^3.0.0"
+  }
 }

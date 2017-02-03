@@ -11,7 +11,6 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post('/api/v1/todos/', (req, res) => {
-    console.log(req.body);
     var todo = new Todo({
         text: req.body.text
     });
@@ -27,3 +26,5 @@ app.post('/api/v1/todos/', (req, res) => {
 app.listen(3000, () => {
     console.log('Server up on 3000');
 });
+
+module.exports = {app};
