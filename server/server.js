@@ -11,7 +11,6 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post('/api/v1/todos/', (req, res) => {
-    console.log(req.body);
     var todo = new Todo({
         text: req.body.text
     });
