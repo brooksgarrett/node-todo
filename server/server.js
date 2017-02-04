@@ -11,6 +11,7 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post('/api/v1/todos/', (req, res) => {
+    console.log(req.body);
     var todo = new Todo({
         text: req.body.text
     });
@@ -21,6 +22,15 @@ app.post('/api/v1/todos/', (req, res) => {
         res.status(400);
         res.send(e);
     })
+});
+
+app.get('/api/v1/todos', (req, res) => {
+    Todo.find().then((todos) => {
+        res.send({todos});
+    }, (e) => {
+        res.status(400);
+        res.send(e);
+    });
 });
 
 app.listen(3000, () => {
