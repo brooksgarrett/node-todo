@@ -102,3 +102,42 @@ describe('GET /api/v1/todos/:id', () => {
    
     
 });
+
+describe('DELETE /api/v1/todos/:id', () => {
+    it('should delete a todo when given an id', (done) => {
+        request(app)
+            .delete(`/api/v1/todos/${todos[0]._id.toHexString()}`)
+            .send()
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(todos[0].text);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                Todo.find({}).then((todos) => {
+                    expect(todos.length).toBe(1);
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+    it('should return 400 for an invalid ID', (done) => {
+        request(app)
+            .delete(`/api/v1/todos/a`)
+            .send()
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.error).toEqual('a is not valid');
+            })
+            .end(done);
+    });
+    it('should return 404 for a valid id that isn\'t in the collection', (done) => {
+        request(app)
+            .delete(`/api/v1/todos/${hexID}`)
+            .send()
+            .expect(404)
+            .end(done);
+    });
+});
