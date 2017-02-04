@@ -49,6 +49,21 @@ app.get('/api/v1/todos/:id', (req, res) => {
     });
 });
 
+app.delete('/api/v1/todos/:id', (req, res) => {
+    if (!ObjectID.isValid(req.params.id)) {
+        return res.status(400)
+            .send({error: `${req.params.id} is not valid`});
+    }
+    Todo.findByIdAndRemove(req.params.id).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+        res.send({todo});
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
 app.listen(port, () => {
     console.log(`Server up on ${port}`);
 });
