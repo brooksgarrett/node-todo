@@ -4,9 +4,12 @@
   "description": "Simple Todo API",
   "main": "index.js",
   "scripts": {
-    "run": "node server/server.js",
+    "start": "node server/server.js",
     "test": "mocha server/**/*.test.js",
     "test-w": "nodemon --exec \"mocha server/**/*.test.js\""
+  },
+  "engines": {
+    "node": "6.9.4"
   },
   "author": "Brooks Garrett",
   "license": "ISC",
