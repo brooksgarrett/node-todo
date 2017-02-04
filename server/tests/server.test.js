@@ -1,14 +1,18 @@
 const request = require('supertest');
 const expect = require('expect');
+const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
 const todos = [{
+    _id: new ObjectID(),
     text: 'First todo'
 }, {
+    _id: new ObjectID(),
     text: 'Second todo'
 }];
+const hexID = '58953d71340d3e460b069197';
 
 beforeEach((done) => {
     Todo.remove({}).then(() => {
@@ -68,4 +72,33 @@ describe('GET /api/v1/todos', () => {
             })
             .end(done);
     });
+});
+
+describe('GET /api/v1/todos/:id', () => {
+    it('should return one todo for a valid ID', (done) => {
+        request(app)
+            .get(`/api/v1/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toEqual(todos[0].text);
+            })
+            .end(done);
+    });
+    it('should return 400 for an invalid ID', (done) => {
+        request(app)
+            .get(`/api/v1/todos/a`)
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.error).toEqual('a is not valid');
+            })
+            .end(done);
+    });
+    it('should return 404 for a valid id that isn\'t in the collection', (done) => {
+        request(app)
+            .get(`/api/v1/todos/${hexID}`)
+            .expect(404)
+            .end(done);
+    });
+   
+    
 });
