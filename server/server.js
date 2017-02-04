@@ -1,6 +1,7 @@
 // Package imports
 var express = require('express');
 var bodyParser = require('body-parser');
+var {ObjectID} = require('mongodb');
 
 // Local imports
 var mongoose = require('./db/mongoose');
@@ -29,6 +30,21 @@ app.get('/api/v1/todos', (req, res) => {
     }, (e) => {
         res.status(400);
         res.send(e);
+    });
+});
+
+app.get('/api/v1/todos/:id', (req, res) => {
+    if (!ObjectID.isValid(req.params.id)) {
+        return res.status(400)
+            .send({error: `${req.params.id} is not valid`});
+    }
+    Todo.findById(req.params.id).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+        res.send({todo});
+    }, (e) => {
+        res.status(400).send(e);
     });
 });
 
