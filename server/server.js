@@ -5,7 +5,8 @@ require('../config/config');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
-const _ = require('lodash')
+const _ = require('lodash');
+const jwt = require('jsonwebtoken');
 
 // Local imports
 var mongoose = require('./db/mongoose');
@@ -104,8 +105,26 @@ app.patch('/api/v1/todos/:id', (req, res) => {
 
 });
 
+app.post('/api/v1/users/', (req, res) => {
+    var body = _.pick(req.body, [
+        'user', 
+        'password'
+    ]);
+
+    var user = new User(body);
+
+    user.save().then((doc) => {
+        res.send(doc);
+    }, (e) => {
+        res.status(400);
+        res.send(e);
+    })
+});
+
 app.listen(port, () => {
     console.log(`Server up on ${port}`);
 });
+
+
 
 module.exports = {app};
