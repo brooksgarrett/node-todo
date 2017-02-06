@@ -116,7 +116,6 @@ app.post('/api/v1/users/', (req, res) => {
 
     user.save()
         .then(() => {
-            console.log(JSON.stringify(user));
             return user.generateAuthToken();
         }).then((token) => {
             res.header('X-AUTH', token).send(user);
