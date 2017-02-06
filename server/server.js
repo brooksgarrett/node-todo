@@ -107,18 +107,22 @@ app.patch('/api/v1/todos/:id', (req, res) => {
 
 app.post('/api/v1/users/', (req, res) => {
     var body = _.pick(req.body, [
-        'user', 
+        'email', 
         'password'
     ]);
 
     var user = new User(body);
 
-    user.save().then((doc) => {
-        res.send(doc);
-    }, (e) => {
-        res.status(400);
-        res.send(e);
-    })
+    user.save()
+        .then(() => {
+            console.log(JSON.stringify(user));
+            return user.generateAuthToken();
+        }).then((token) => {
+            res.header('X-AUTH', token).send(user);
+        }).catch((e) => {
+            res.status(400);
+            res.send(e);
+        });
 });
 
 app.listen(port, () => {
