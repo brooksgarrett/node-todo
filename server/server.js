@@ -12,6 +12,7 @@ const jwt = require('jsonwebtoken');
 var mongoose = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+const {authenticate} = require('./middleware/authenticate');
 
 
 var app = express();
@@ -123,6 +124,10 @@ app.post('/api/v1/users/', (req, res) => {
             res.status(400);
             res.send(e);
         });
+});
+
+app.get('/api/v1/users/me', authenticate, (req, res) => {
+    res.send(req.user);
 });
 
 app.listen(port, () => {
