@@ -185,6 +185,9 @@ describe('GET /api/v1/users/me', () => {
         request(app)
             .get('/api/v1/users/me')
             .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual({});
+            })
             .end(done);
     });
 });
