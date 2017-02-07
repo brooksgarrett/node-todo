@@ -13,6 +13,22 @@ beforeEach(populateTodos);
 beforeEach(populateUsers);
 
 describe('POST /api/v1/todos', () => {
+    it('should be protected', (done) => {
+        request(app)
+            .post('/api/v1/todos')
+            .send({})
+            .expect(401)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                Todo.find().then((todos) => {
+                    expect(todos.length).toBe(2);
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
     it('should create a new todo', (done) => {
         var text = 'Walk the dog';
 
@@ -56,6 +72,17 @@ describe('POST /api/v1/todos', () => {
 });
 
 describe('GET /api/v1/todos', () => {
+    it('should be protected', (done) => {
+        request(app)
+            .get('/api/v1/todos')
+            .expect(401)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
+    });
     it('should get all todos', (done) => {
         request(app)
             .get('/api/v1/todos')
@@ -64,11 +91,27 @@ describe('GET /api/v1/todos', () => {
             .expect((res) => {
                 expect(res.body.todos.length).toBe(1);
             })
-            .end(done);
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
     });
 });
 
 describe('GET /api/v1/todos/:id', () => {
+    it('should be protected', (done) => {
+        request(app)
+            .get(`/api/v1/todos/${todos[0]._id.toHexString()}`)
+            .expect(401)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
+    });
     it('should return one todo for a valid ID', (done) => {
         request(app)
             .get(`/api/v1/todos/${todos[0]._id.toHexString()}`)
@@ -77,7 +120,12 @@ describe('GET /api/v1/todos/:id', () => {
             .expect((res) => {
                 expect(res.body.todo.text).toEqual(todos[0].text);
             })
-            .end(done);
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
     });
     it('should return 400 for an invalid ID', (done) => {
         request(app)
@@ -87,21 +135,36 @@ describe('GET /api/v1/todos/:id', () => {
             .expect((res) => {
                 expect(res.body.error).toEqual('a is not valid');
             })
-            .end(done);
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
     });
     it('should return 404 for a valid id that isn\'t in the collection', (done) => {
         request(app)
             .get(`/api/v1/todos/${hexID}`)
             .set('x-auth', users[0].tokens[0].token)
             .expect(404)
-            .end(done);
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
     });
     it('should not return a todo created by a different user', (done) => {
         request(app)
             .get(`/api/v1/todos/${todos[1]._id.toHexString()}`)
             .set('x-auth', users[0].tokens[0].token)
             .expect(404)
-            .end(done);
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
     });
    
     
@@ -430,6 +493,18 @@ describe('POST /api/v1/users/login', () => {
 });
 
 describe('DELETE /api/v1/users/me/token', () => {
+    it('should be protected', (done) => {
+        request(app)
+            .delete('/api/v1/users/me/token')
+            .send()
+            .expect(401)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
+    });
     it('should remove token on logout', (done) => {
         request(app)
             .delete('/api/v1/users/me/token')
@@ -440,13 +515,13 @@ describe('DELETE /api/v1/users/me/token', () => {
                 User.findById(users[0]._id).then((user) => {
                     debugger;
                     expect(user.tokens.length).toBe(0);
-                    done();
                 }).catch((e) => done(e));
             })
             .end((err, res) => {
                 if (err) {
                     return done(err);
                 }
+                done();
             });
     });
 });
