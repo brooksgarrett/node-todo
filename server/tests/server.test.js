@@ -251,3 +251,89 @@ describe('POST /api/v1/users', () => {
             .end(done);
     });
 });
+
+describe('POST /api/v1/users/login', () => {
+    it('should login the user and return an auth token', (done) => {
+        let userLocal = users[1];
+
+        request(app)
+            .post('/api/v1/users/login')
+            .send({
+                email: userLocal.email, 
+                password: userLocal.password
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toBeA('string');
+                expect(res.body).toInclude({
+                    email: userLocal.email,
+                    _id: userLocal._id
+                });
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                User.findById(userLocal._id).then((userDB) => {
+                    expect(userDB.tokens[0]).toInclude({
+                        access: 'auth',
+                        token: res.headers['x-auth']
+                    });
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+
+    it('should reject an invalid login (bad email)', (done) => {
+        let userLocal = users[1];
+
+        request(app)
+            .post('/api/v1/users/login')
+            .send({
+                email: 'not-a-user@example.com', 
+                password: userLocal.password
+            })
+            .expect(401)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toNotExist();
+                expect(res.body.email).toNotExist();
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                User.findById(userLocal._id).then((userDB) => {
+                    expect(userDB.tokens.length).toBe(0);
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+
+    it('should reject an invalid login (bad password)', (done) => {
+        let userLocal = users[1];
+
+        request(app)
+            .post('/api/v1/users/login')
+            .send({
+                email: userLocal.email, 
+                password: 'notmypassword'
+            })
+            .expect(401)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toNotExist();
+                expect(res.body.email).toNotExist();
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                User.findById(userLocal._id).then((userDB) => {
+                    expect(userDB.tokens.length).toBe(0);
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+});
