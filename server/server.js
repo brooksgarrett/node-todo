@@ -27,9 +27,8 @@ app.post('/api/v1/todos/', (req, res) => {
     todo.save().then((doc) => {
         res.send(doc);
     }, (e) => {
-        res.status(400);
-        res.send(e);
-    })
+        res.status(400).send();
+    });
 });
 
 app.get('/api/v1/todos', (req, res) => {

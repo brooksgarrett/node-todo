@@ -4,24 +4,12 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
-const todos = [{
-    _id: new ObjectID(),
-    text: 'First todo'
-}, {
-    _id: new ObjectID(),
-    text: 'Second todo',
-    completed: true,
-    completedAt: 100
-}];
 const hexID = '58953d71340d3e460b069197';
 
-beforeEach((done) => {
-    Todo.remove({}).then(() => {
-        Todo.insertMany(todos);
-        done(); 
-    });
-});
+beforeEach(populateTodos);
+beforeEach(populateUsers);
 
 describe('POST /api/v1/todos', () => {
     it('should create a new todo', (done) => {
@@ -178,6 +166,25 @@ describe('PATCH /api/v1/todos/:id', () => {
                 expect(res.body.todo.completed).toBe(false);
                 expect(res.body.todo.completedAt).toBe(null);
             })
+            .end(done);
+    });
+});
+
+describe('GET /api/v1/users/me', () => {
+    it('should return a user if authenticated', (done) => {
+        request(app)
+            .get('/api/v1/users/me')
+            .set('X-AUTH', users[0].tokens[0].token)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toBe(users[0]._id.toHexString());
+                expect(res.body.email).toBe(users[0].email);
+            }).end(done);
+    });
+    it('should return a 401 if unauthenticated', (done) => {
+        request(app)
+            .get('/api/v1/users/me')
+            .expect(401)
             .end(done);
     });
 });
