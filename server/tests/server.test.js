@@ -5,6 +5,7 @@ const {ObjectID} = require('mongodb');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
+const {User} = require('../models/user');
 
 const hexID = '58953d71340d3e460b069197';
 
@@ -187,6 +188,65 @@ describe('GET /api/v1/users/me', () => {
             .expect(401)
             .expect((res) => {
                 expect(res.body).toEqual({});
+            })
+            .end(done);
+    });
+});
+
+describe('POST /api/v1/users', () => {
+    it('should create a new user', (done) => {
+        var email = 'user@example.com';
+        var password = 'abc123!';
+
+        request(app)
+            .post('/api/v1/users')
+            .send({email, password})
+            .expect(200)
+            .expect((res) => {
+                debugger;
+                expect(res.headers['x-auth']).toExist();
+                expect(res.body._id).toExist();
+                expect(res.body.email).toBe(email);
+            })
+            .end((err) => {
+                if (err) {
+                    return done(err);
+                }
+
+                User.findOne({email}).then((user) => {
+                    expect(user).toExist();
+                    expect(user.password).toNotBe(password);
+                    done();
+                })
+            });
+    });
+    it('should return validation errors for invalid data', (done) => {
+        var email = 'user@example';
+        var password = 'a';
+
+        request(app)
+            .post('/api/v1/users')
+            .send({email, password})
+            .expect(400)
+            .expect((res) => {
+                debugger;
+                expect(res.headers['x-auth']).toNotExist();
+                expect(res.body.errors.email.name).toBe('ValidatorError');
+            })
+            .end(done);
+    });
+    it('should not create a duplicate user', (done) => {
+        var email = users[0].email;
+        var password = 'abc123!';
+
+        request(app)
+            .post('/api/v1/users')
+            .send({email, password})
+            .expect(400)
+            .expect((res) => {
+                debugger;
+                expect(res.headers['x-auth']).toNotExist();
+                expect(res.body.code).toBe(11000);
             })
             .end(done);
     });
