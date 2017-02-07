@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 // Local imports
 var mongoose = require('./db/mongoose');
@@ -105,7 +106,7 @@ app.patch('/api/v1/todos/:id', (req, res) => {
 
 });
 
-app.post('/api/v1/users/', (req, res) => {
+app.post('/api/v1/users', (req, res) => {
     var body = _.pick(req.body, [
         'email', 
         'password'
@@ -117,12 +118,25 @@ app.post('/api/v1/users/', (req, res) => {
         .then(() => {
             return user.generateAuthToken();
         }).then((token) => {
-            res.header('X-AUTH', token).send(user);
+            res.header('x-auth', token).send(user);
         }).catch((e) => {
             res.status(400);
             res.send(e);
         });
 });
+
+app.post('/api/v1/users/login', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+
+    User.findByCredentials(body.email, body.password).then((user) => {
+        token = user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user);
+        });
+    }).catch(() => {
+        res.status(401).send();
+    });
+});
+
 
 app.get('/api/v1/users/me', authenticate, (req, res) => {
     res.send(req.user);
