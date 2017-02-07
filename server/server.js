@@ -20,9 +20,10 @@ var app = express();
 const port = process.env.PORT;
 app.use(bodyParser.json());
 
-app.post('/api/v1/todos/', (req, res) => {
+app.post('/api/v1/todos/', authenticate, (req, res) => {
     var todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        _creator: req.user._id
     });
 
     todo.save().then((doc) => {
@@ -32,8 +33,8 @@ app.post('/api/v1/todos/', (req, res) => {
     });
 });
 
-app.get('/api/v1/todos', (req, res) => {
-    Todo.find().then((todos) => {
+app.get('/api/v1/todos', authenticate, (req, res) => {
+    Todo.find({_creator: req.user._id}).then((todos) => {
         res.send({todos});
     }, (e) => {
         res.status(400);
@@ -41,12 +42,17 @@ app.get('/api/v1/todos', (req, res) => {
     });
 });
 
-app.get('/api/v1/todos/:id', (req, res) => {
-    if (!ObjectID.isValid(req.params.id)) {
+app.get('/api/v1/todos/:id', authenticate, (req, res) => {
+    var id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
         return res.status(400)
-            .send({error: `${req.params.id} is not valid`});
+            .send({error: `${id} is not valid`});
     }
-    Todo.findById(req.params.id).then((todo) => {
+    Todo.findOne({
+        _id: id,
+        _creator: req.user._id
+        }).then((todo) => {
         if (!todo) {
             return res.status(404).send();
         }
@@ -56,12 +62,16 @@ app.get('/api/v1/todos/:id', (req, res) => {
     });
 });
 
-app.delete('/api/v1/todos/:id', (req, res) => {
-    if (!ObjectID.isValid(req.params.id)) {
+app.delete('/api/v1/todos/:id', authenticate, (req, res) => {
+    var id = req.params.id;
+    if (!ObjectID.isValid(id)) {
         return res.status(400)
-            .send({error: `${req.params.id} is not valid`});
+            .send({error: `${id} is not valid`});
     }
-    Todo.findByIdAndRemove(req.params.id).then((todo) => {
+    Todo.findOneAndRemove({
+        _id: id,
+        _creator: req.user._id
+    }).then((todo) => {
         if (!todo) {
             return res.status(404).send();
         }
@@ -71,7 +81,7 @@ app.delete('/api/v1/todos/:id', (req, res) => {
     });
 });
 
-app.patch('/api/v1/todos/:id', (req, res) => {
+app.patch('/api/v1/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
     var body = _.pick(req.body, [
         'text',
@@ -90,7 +100,7 @@ app.patch('/api/v1/todos/:id', (req, res) => {
         body.completedAt = null;
     }
 
-    Todo.findByIdAndUpdate(id, {
+    Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {
         $set: body
     }, {
         new: true
