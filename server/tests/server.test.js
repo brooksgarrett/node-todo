@@ -203,7 +203,6 @@ describe('POST /api/v1/users', () => {
             .send({email, password})
             .expect(200)
             .expect((res) => {
-                debugger;
                 expect(res.headers['x-auth']).toExist();
                 expect(res.body._id).toExist();
                 expect(res.body.email).toBe(email);
@@ -229,7 +228,6 @@ describe('POST /api/v1/users', () => {
             .send({email, password})
             .expect(400)
             .expect((res) => {
-                debugger;
                 expect(res.headers['x-auth']).toNotExist();
                 expect(res.body.errors.email.name).toBe('ValidatorError');
             })
@@ -244,7 +242,6 @@ describe('POST /api/v1/users', () => {
             .send({email, password})
             .expect(400)
             .expect((res) => {
-                debugger;
                 expect(res.headers['x-auth']).toNotExist();
                 expect(res.body.code).toBe(11000);
             })
@@ -334,6 +331,28 @@ describe('POST /api/v1/users/login', () => {
                     expect(userDB.tokens.length).toBe(0);
                     done();
                 }).catch((e) => done(e));
+            });
+    });
+});
+
+describe('DELETE /api/v1/users/me/token', () => {
+    it('should remove token on logout', (done) => {
+        request(app)
+            .delete('/api/v1/users/me/token')
+            .set('x-auth', users[0].tokens[0].token)
+            .send()
+            .expect(200)
+            .expect((res) => {
+                User.findById(users[0]._id).then((user) => {
+                    debugger;
+                    expect(user.tokens.length).toBe(0);
+                    done();
+                }).catch((e) => done(e));
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
             });
     });
 });
